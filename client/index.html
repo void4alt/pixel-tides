@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#071825" />
+    <title>Pixel Tides — Cozy Multiplayer Fishing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23071825'/%3E%3Cpath d='M5 17c5-6 12-6 17 0-5 6-12 6-17 0z' fill='%2358b8ff'/%3E%3Ccircle cx='19' cy='15' r='1.5' fill='%23071825'/%3E%3Cpath d='M5 17l-3-4v8z' fill='%2358b8ff'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div id="app">
+      <section id="auth-screen" class="auth-screen">
+        <div class="auth-sky"></div>
+        <div class="auth-sun"></div>
+        <div class="auth-clouds"><i></i><i></i><i></i></div>
+        <div class="auth-sea">
+          <div class="wave wave-a"></div>
+          <div class="wave wave-b"></div>
+          <div class="wave wave-c"></div>
+          <div class="sea-sparkles"></div>
+        </div>
+        <div class="auth-island">
+          <div class="palm p1"></div>
+          <div class="palm p2"></div>
+          <div class="island-rock"></div>
+        </div>
+        <main class="auth-card">
+          <div class="auth-logo">
+            <span class="logo-kicker">A COZY ONLINE ADVENTURE</span>
+            <h1>PIXEL<br /><em>TIDES</em></h1>
+            <div class="logo-fish">◀))&gt;</div>
+          </div>
+          <p class="auth-tagline">Cast a line. Meet the tide.<br />Discover what sleeps beneath.</p>
+
+          <div class="auth-tabs" role="tablist">
+            <button class="auth-tab is-active" data-auth-tab="guest" role="tab">Guest</button>
+            <button class="auth-tab" data-auth-tab="login" role="tab">Sign In</button>
+            <button class="auth-tab" data-auth-tab="register" role="tab">Create</button>
+          </div>
+
+          <form id="guest-form" class="auth-form" autocomplete="off">
+            <label class="field">
+              <span>Angler name <small>optional</small></span>
+              <input id="guest-name" maxlength="18" placeholder="LuckyOtter" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span>Room code <small>optional · join friends</small></span>
+              <input id="guest-room-code" maxlength="10" placeholder="e.g. TIDE99" style="text-transform:uppercase" spellcheck="false" />
+            </label>
+            <button type="submit" class="pixel-btn primary big">Play as Guest <span>→</span></button>
+            <p class="auth-note">No password. Your guest profile is saved to this browser's session.</p>
+          </form>
+
+          <form id="login-form" class="auth-form is-hidden" autocomplete="on">
+            <label class="field">
+              <span>Angler name</span>
+              <input id="login-name" maxlength="18" placeholder="Your name" spellcheck="false" required />
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input id="login-password" type="password" placeholder="••••••••" required />
+            </label>
+            <button type="submit" class="pixel-btn primary big">Sign In <span>→</span></button>
+          </form>
+
+          <form id="register-form" class="auth-form is-hidden" autocomplete="off">
+            <label class="field">
+              <span>Angler name</span>
+              <input id="register-name" maxlength="18" placeholder="Your name" spellcheck="false" required />
+            </label>
+            <label class="field">
+              <span>Password <small>6+ characters</small></span>
+              <input id="register-password" type="password" placeholder="••••••••" required minlength="6" />
+            </label>
+            <button type="submit" class="pixel-btn primary big">Create Account <span>→</span></button>
+            <p class="auth-note">Accounts persist coins, catches and your entire fish encyclopedia.</p>
+          </form>
+
+          <div id="auth-error" class="auth-error" role="alert"></div>
+          <div class="auth-footer">
+            <span><b>120+</b> species</span>
+            <span><b>5</b> locations</span>
+            <span><b>Live</b> multiplayer</span>
+          </div>
+        </main>
+        <div class="auth-credit">PIXEL TIDES v1.0 · A living ocean</div>
+      </section>
+
+      <section id="game-shell" class="game-shell is-hidden">
+        <div id="game-container" aria-label="Pixel Tides game world"></div>
+        <div id="day-overlay" class="day-overlay"></div>
+        <div id="weather-overlay" class="weather-overlay"></div>
+
+        <header class="hud-top">
+          <div class="hud-profile pixel-panel">
+            <div class="avatar-frame">
+              <div class="avatar-canvas" data-character data-char-width="48" data-char-height="72"></div>
+              <span class="avatar-level" id="hud-level">1</span>
+            </div>
+            <div class="profile-copy">
+              <div class="profile-line">
+                <strong id="hud-username">Angler</strong>
+                <span class="profile-tag">ANGLER</span>
+              </div>
+              <div class="xp-track"><i id="hud-xp-bar"></i></div>
+              <span id="hud-xp-text">0 / 100 XP</span>
+              <div class="energy-row">
+                <span class="energy-label">EN</span>
+                <div class="energy-track"><i id="hud-energy-bar"></i></div>
+                <span id="hud-energy-text">100</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hud-location pixel-panel">
+            <span class="loc-kicker">CURRENT WATERS</span>
+            <strong id="hud-location">Sunny Shore</strong>
+            <span id="hud-environment" class="env-line">Sunny · 08:00</span>
+            <span id="hud-fishing-status" class="fishing-status">ROD READY</span>
+          </div>
+
+          <div class="hud-right">
+            <div class="hud-coins pixel-panel"><span class="coin-icon">◉</span><b id="hud-coins">150</b></div>
+            <div class="hud-players pixel-panel" title="Anglers in this room"><span class="dot"></span><b id="hud-players">1</b><span>/30</span></div>
+            <button class="icon-btn pixel-panel" id="btn-chat" title="Chat (T)" aria-label="Chat">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="8" fill="currentColor"/><rect x="3" y="4" width="10" height="5" fill="#0b2432"/><rect x="4" y="11" width="2" height="2" fill="currentColor"/><rect x="4" y="6" width="6" height="1" fill="currentColor"/><rect x="4" y="8" width="4" height="1" fill="currentColor"/></svg>
+            </button>
+            <button class="icon-btn pixel-panel" id="btn-settings" title="Settings" aria-label="Settings">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="7" y="1" width="2" height="3" fill="currentColor"/><rect x="7" y="12" width="2" height="3" fill="currentColor"/><rect x="1" y="7" width="3" height="2" fill="currentColor"/><rect x="12" y="7" width="3" height="2" fill="currentColor"/><rect x="4" y="4" width="8" height="8" fill="currentColor"/><rect x="6" y="6" width="4" height="4" fill="#0b2432"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <aside class="hud-menu">
+          <button class="menu-btn" data-panel="inventory" title="Inventory (I)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="6" width="8" height="8" fill="currentColor"/><rect x="5" y="4" width="6" height="2" fill="currentColor"/><rect x="6" y="2" width="1" height="2" fill="currentColor"/><rect x="9" y="2" width="1" height="2" fill="currentColor"/><rect x="6" y="8" width="4" height="4" fill="#0b2432"/></svg><em>Bag</em></button>
+          <button class="menu-btn" data-panel="collection" title="Fish Encyclopedia (F)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="6" width="8" height="5" fill="currentColor"/><rect x="4" y="5" width="6" height="7" fill="currentColor"/><rect x="11" y="5" width="2" height="2" fill="currentColor"/><rect x="11" y="10" width="2" height="2" fill="currentColor"/><rect x="11" y="7" width="3" height="3" fill="currentColor"/><rect x="6" y="7" width="1" height="1" fill="#0b2432"/></svg><em>Fish</em></button>
+          <button class="menu-btn" data-panel="shop" title="Shops"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="6" width="12" height="2" fill="currentColor"/><rect x="3" y="8" width="10" height="6" fill="currentColor"/><rect x="6" y="9" width="4" height="5" fill="#0b2432"/><rect x="4" y="3" width="8" height="3" fill="currentColor"/><rect x="5" y="4" width="6" height="1" fill="#0b2432"/></svg><em>Shop</em></button>
+          <button class="menu-btn" data-panel="quests" title="Quests (Q)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="10" height="12" fill="currentColor"/><rect x="5" y="4" width="6" height="1" fill="#0b2432"/><rect x="5" y="7" width="6" height="1" fill="#0b2432"/><rect x="5" y="10" width="3" height="1" fill="#0b2432"/><rect x="9" y="9" width="1" height="1" fill="#7ff7e8"/><rect x="10" y="10" width="1" height="1" fill="#7ff7e8"/><rect x="11" y="8" width="1" height="1" fill="#7ff7e8"/></svg><em>Quests</em></button>
+          <button class="menu-btn" data-panel="map" title="World Map (M)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="4" height="10" fill="currentColor"/><rect x="6" y="2" width="4" height="10" fill="currentColor"/><rect x="10" y="4" width="4" height="10" fill="currentColor"/><rect x="2" y="3" width="12" height="1" fill="#0b2432"/><rect x="7" y="4" width="1" height="8" fill="#0b2432"/></svg><em>Map</em></button>
+          <button class="menu-btn" data-panel="tournament" title="Tournaments"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="2" width="6" height="5" fill="currentColor"/><rect x="4" y="2" width="1" height="4" fill="currentColor"/><rect x="11" y="2" width="1" height="4" fill="currentColor"/><rect x="7" y="7" width="2" height="3" fill="currentColor"/><rect x="5" y="10" width="6" height="2" fill="currentColor"/><rect x="6" y="4" width="1" height="1" fill="#ffd166"/><rect x="9" y="4" width="1" height="1" fill="#ffd166"/></svg><em>Tourney</em></button>
+          <button class="menu-btn" data-panel="leaderboard" title="Leaderboards"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="9" width="3" height="5" fill="currentColor"/><rect x="6" y="5" width="3" height="9" fill="currentColor"/><rect x="10" y="2" width="3" height="12" fill="currentColor"/><rect x="2" y="9" width="3" height="1" fill="#ffd166"/><rect x="6" y="5" width="3" height="1" fill="#ffd166"/><rect x="10" y="2" width="3" height="1" fill="#ffd166"/></svg><em>Ranks</em></button>
+          <button class="menu-btn" data-panel="voyage" title="Boats & Diving (V)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="9" width="12" height="3" fill="currentColor"/><rect x="4" y="12" width="8" height="2" fill="currentColor"/><rect x="7" y="2" width="1" height="7" fill="currentColor"/><rect x="8" y="3" width="4" height="4" fill="currentColor"/><rect x="9" y="4" width="2" height="2" fill="#0b2432"/></svg><em>Voyage</em></button>
+          <button class="menu-btn" data-panel="island" title="Island & Aquarium (H)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="6" width="10" height="8" fill="currentColor"/><rect x="2" y="5" width="12" height="2" fill="currentColor"/><rect x="6" y="9" width="4" height="5" fill="#0b2432"/><rect x="11" y="3" width="1" height="3" fill="currentColor"/><rect x="11" y="2" width="3" height="1" fill="#7ff7e8"/></svg><em>Island</em></button>
+          <button class="menu-btn" data-panel="social" title="Crew & Market (G)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="5" width="4" height="4" fill="currentColor"/><rect x="10" y="5" width="4" height="4" fill="currentColor"/><rect x="3" y="9" width="10" height="5" fill="currentColor"/><rect x="7" y="2" width="2" height="2" fill="currentColor"/><rect x="4" y="6" width="1" height="1" fill="#0b2432"/><rect x="11" y="6" width="1" height="1" fill="#0b2432"/></svg><em>Crew</em></button>
+          <button class="menu-btn" data-panel="events" title="World Events (N)"><svg class="menu-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="7" y="1" width="2" height="3" fill="currentColor"/><rect x="7" y="12" width="2" height="3" fill="currentColor"/><rect x="1" y="7" width="3" height="2" fill="currentColor"/><rect x="12" y="7" width="3" height="2" fill="currentColor"/><rect x="6" y="6" width="4" height="4" fill="#ffd166"/><rect x="3" y="3" width="2" height="2" fill="currentColor"/><rect x="11" y="3" width="2" height="2" fill="currentColor"/><rect x="3" y="11" width="2" height="2" fill="currentColor"/><rect x="11" y="11" width="2" height="2" fill="currentColor"/></svg><em>Events</em></button>
+        </aside>
+
+        <div id="event-banner" class="event-banner is-hidden"></div>
+        <div id="party-banner" class="party-banner is-hidden"></div>
+        <div id="creature-banner" class="creature-banner is-hidden"></div>
+
+        <div id="chat-dock" class="chat-dock pixel-panel is-collapsed">
+          <div class="chat-head">
+            <span><i class="dot"></i> VILLAGE CHAT</span>
+            <button id="chat-mode" class="mini-btn mode" title="Toggle nearby chat">NEAR</button>
+            <button id="chat-close" class="mini-btn" title="Close">×</button>
+          </div>
+          <div id="chat-log" class="chat-log"></div>
+          <form id="chat-form" class="chat-form">
+            <input id="chat-input" maxlength="140" placeholder="Say hello to the tide..." autocomplete="off" />
+            <button type="submit" class="mini-btn send">↑</button>
+          </form>
+        </div>
+
+        <div id="catch-feed" class="catch-feed"></div>
+        <div id="toasts" class="toasts"></div>
+
+        <div id="hint-bar" class="hint-bar pixel-panel">
+          <span><b>WASD</b> move</span>
+          <span><b>SHIFT</b> sprint</span>
+          <span><b>SPACE</b> cast / reel</span>
+          <span><b>E</b> talk / cook</span>
+          <span><b>T</b> chat</span>
+        </div>
+
+        <div id="npc-prompt" class="npc-prompt is-hidden">
+          <button id="npc-prompt-btn" class="pixel-btn small">Press <b>E</b> to talk</button>
+        </div>
+
+        <div id="campfire-prompt" class="npc-prompt campfire-prompt is-hidden">
+          <button id="campfire-prompt-btn" class="pixel-btn small warm">Press <b>E</b> to cook</button>
+        </div>
+
+        <div id="treasure-prompt" class="npc-prompt treasure-prompt is-hidden">
+          <button id="treasure-prompt-btn" class="pixel-btn small">Press <b>E</b> to open sunken treasure</button>
+        </div>
+
+        <div id="catch-reveal" class="catch-reveal is-hidden" role="dialog" aria-modal="true">
+          <div class="reveal-card">
+            <div class="reveal-rays"></div>
+            <div class="reveal-banner" id="reveal-banner">NEW FISH DISCOVERED!</div>
+            <div class="reveal-art" id="reveal-art"></div>
+            <div class="reveal-name" id="reveal-name">Golden Koi</div>
+            <div class="reveal-rarity rarity-badge common" id="reveal-rarity">Common</div>
+            <div class="reveal-stats">
+              <div><span>WEIGHT</span><b id="reveal-weight">0.00 kg</b></div>
+              <div><span>LENGTH</span><b id="reveal-length">0 cm</b></div>
+              <div><span>VALUE</span><b id="reveal-value">0</b></div>
+              <div><span>XP</span><b id="reveal-xp">0</b></div>
+            </div>
+            <div class="reveal-where" id="reveal-where">Sunny Shore</div>
+            <button class="pixel-btn small gold" id="reveal-close">Add to creel</button>
+          </div>
+        </div>
+
+        <div id="mobile-controls" class="mobile-controls is-hidden">
+          <div id="joystick" class="joystick">
+            <div class="joystick-ring"></div>
+            <div id="joystick-knob" class="joystick-knob"><span></span></div>
+          </div>
+          <div class="mobile-actions">
+            <div class="action-cluster">
+              <button id="mobile-sprint" class="mobile-btn utility" title="Sprint">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="8" y="2" width="3" height="3" fill="currentColor"/><rect x="4" y="6" width="6" height="2" fill="currentColor"/><rect x="2" y="9" width="5" height="2" fill="currentColor"/><rect x="6" y="12" width="2" height="2" fill="currentColor"/><rect x="11" y="5" width="2" height="2" fill="currentColor"/></svg>
+              </button>
+              <button id="mobile-eat" class="mobile-btn utility" title="Eat cooked fish">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="4" width="8" height="8" fill="currentColor"/><rect x="5" y="2" width="4" height="2" fill="currentColor"/><rect x="11" y="3" width="1" height="10" fill="currentColor"/><rect x="13" y="3" width="1" height="4" fill="currentColor"/><rect x="13" y="9" width="1" height="4" fill="currentColor"/></svg>
+              </button>
+              <button id="mobile-bag" class="mobile-btn utility" title="Inventory">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="6" width="8" height="8" fill="currentColor"/><rect x="5" y="4" width="6" height="2" fill="currentColor"/><rect x="6" y="8" width="4" height="4" fill="#0b2432"/></svg>
+              </button>
+              <button id="mobile-sail" class="mobile-btn utility" title="Sail / dock">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="10" width="12" height="2" fill="currentColor"/><rect x="7" y="2" width="1" height="8" fill="currentColor"/><rect x="8" y="3" width="4" height="4" fill="currentColor"/></svg>
+              </button>
+              <button id="mobile-dive" class="mobile-btn utility" title="Dive / surface">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="4" fill="currentColor"/><rect x="6" y="2" width="4" height="2" fill="currentColor"/><rect x="3" y="9" width="10" height="2" fill="currentColor"/><rect x="5" y="12" width="6" height="1" fill="currentColor"/></svg>
+              </button>
+              <button id="mobile-emote" class="mobile-btn utility" title="Emote">♪</button>
+              <button id="mobile-interact" class="mobile-btn small" title="Interact">E</button>
+              <button id="mobile-reel" class="mobile-btn reel" title="Reel">REEL</button>
+              <button id="mobile-cast" class="mobile-btn" title="Cast / hook">CAST</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="minigame" class="minigame pixel-panel is-hidden">
+          <div class="mg-head">
+            <div>
+              <span class="mg-kicker">SOMETHING IS BITING</span>
+              <strong id="mg-fish">Unknown fish</strong>
+            </div>
+            <span id="mg-rarity" class="rarity-chip common">Common</span>
+            <span id="mg-time" class="mg-time">22.0s</span>
+          </div>
+          <div class="mg-bar-wrap">
+            <div class="mg-bar">
+              <div id="mg-zone" class="mg-zone"></div>
+              <div id="mg-fish-marker" class="mg-fish-marker">◀))&gt;</div>
+              <div class="mg-tick t1"></div><div class="mg-tick t2"></div><div class="mg-tick t3"></div><div class="mg-tick t4"></div>
+            </div>
+          </div>
+          <div class="mg-progress-row">
+            <span>CATCH</span>
+            <div class="mg-progress"><i id="mg-progress"></i></div>
+            <span id="mg-percent">34%</span>
+          </div>
+          <div class="mg-help"><b>HOLD SPACE</b> or the reel button to lift the zone. Keep the fish inside!</div>
+        </div>
+
+        <div id="bite-prompt" class="bite-prompt is-hidden">
+          <div class="bite-bang">!</div>
+          <strong>BITE!</strong>
+          <span>Press <b>SPACE</b> to hook</span>
+        </div>
+
+        <div id="connection-banner" class="connection-banner is-hidden">Reconnecting to the tide…</div>
+
+        <div id="panel-backdrop" class="panel-backdrop is-hidden"></div>
+        <section id="panel" class="panel pixel-panel is-hidden" role="dialog" aria-modal="true">
+          <header class="panel-head">
+            <div><span id="panel-kicker" class="panel-kicker">YOUR CREEL</span><h2 id="panel-title">Inventory</h2></div>
+            <button id="panel-close" class="panel-close" title="Close">×</button>
+          </header>
+          <div id="panel-body" class="panel-body"></div>
+        </section>
+
+        <div id="loading" class="loading-overlay is-hidden">
+          <div class="loading-box">
+            <div class="loading-fish">◀))&gt;</div>
+            <h3>SAILING OUT</h3>
+            <div class="loading-track"><i></i></div>
+            <p id="loading-text">Finding a quiet spot on the dock…</p>
+          </div>
+        </div>
+
+        <div id="app-version" class="app-version">PIXEL TIDES v1.0</div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
