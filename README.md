@@ -18,6 +18,16 @@
   <img src="https://img.shields.io/badge/Database-SQLite%20%2F%20PostgreSQL-indigo" alt="Database">
 </p>
 
+<p align="center">
+  <a href="https://void4alt.github.io/pixel-tides/">
+    <img src="https://img.shields.io/badge/%F0%9F%8E%AE%20Play%20Live-GitHub%20Pages-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Play Live on GitHub Pages">
+  </a>
+</p>
+
+<p align="center">
+  🎮 <b>Play directly in your browser:</b> <a href="https://void4alt.github.io/pixel-tides/"><b>https://void4alt.github.io/pixel-tides/</b></a>
+</p>
+
 ---
 
 ## 📸 Screenshots & Showcase

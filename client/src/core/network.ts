@@ -1,6 +1,8 @@
 import { Client, type Room } from "colyseus.js";
 import type { LocationId } from "@shared/types";
 import { bus } from "./bus";
+import { LocalRoom } from "./localRoom";
+import { appStore } from "./store";
 
 export interface NetPlayer {
   id: string;
@@ -88,10 +90,23 @@ export class NetworkManager {
     this.currentLocation = location;
     this.currentCode = code;
     this.leaving = false;
-    const room = code
-      ? await this.client.joinOrCreate<NetState>("world", { token, location, code })
-      : await this.client.joinOrCreate<NetState>("world", { token, location, code: "" });
-    this.attach(room);
+    try {
+      const room = code
+        ? await this.client.joinOrCreate<NetState>("world", { token, location, code })
+        : await this.client.joinOrCreate<NetState>("world", { token, location, code: "" });
+      this.attach(room);
+    } catch (err) {
+      console.warn("Could not connect to Colyseus server, activating Local Tide Engine:", err);
+      const localRoom = new LocalRoom(location, appStore.profile);
+      this.attach(localRoom as any);
+      bus.emit("chat", {
+        id: "sys_offline",
+        username: "Tide",
+        text: "🌊 Welcome to Pixel Tides! Running in Offline / Local Tide Mode. All fishing, shops, quests, boats, and sound are fully active!",
+        at: Date.now(),
+        system: true,
+      });
+    }
   }
 
   private attach(room: Room<NetState>): void {
