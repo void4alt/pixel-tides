@@ -804,7 +804,14 @@ export class WorldScene extends Phaser.Scene {
         bus.emit("sprintState", { sprinting: this.mobileSprint });
       }),
       bus.on("castRequest", () => {
-        if (!this.uiOpen && !this.mgActive && performance.now() >= this.inputEnabledAt) this.castAuto();
+        if (!this.uiOpen && !this.mgActive && performance.now() >= this.inputEnabledAt) {
+          const own = this.ownPlayer();
+          if (own && own.fishingState === "bite") {
+            this.network.hook();
+          } else {
+            this.castAuto();
+          }
+        }
       }),
       bus.on("reelHold", (reeling: boolean) => {
         if (this.mgActive) this.network.setReel(reeling);

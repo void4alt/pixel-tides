@@ -1,4 +1,5 @@
-import { Room, type Client } from "@colyseus/core";
+import colyseus, { type Client } from "colyseus";
+const { Room } = colyseus;
 import { randomUUID } from "node:crypto";
 import type {
   Appearance,
@@ -315,9 +316,18 @@ export class WorldRoom extends Room<WorldState> {
     this.onMessage("cookFeast", (client) => this.handleCookFeast(client));
   }
 
-  async onJoin(client: Client, options: Record<string, unknown>, auth?: AuthData): Promise<void> {
-    if (!auth) throw new Error("Missing session data.");
-    const profile = normalizeProfile(auth.profile);
+  async onJoin(client: Client, options: Record<string, unknown>, auth?: any): Promise<void> {
+    let profile: PlayerProfile | null = null;
+    if (auth && typeof auth === "object" && auth.profile) {
+      profile = normalizeProfile(auth.profile);
+    } else {
+      const token = typeof options?.token === "string" ? options.token : "";
+      const user = token ? await store.getUserByToken(token) : null;
+      if (!user) throw new Error("Missing session data. Please sign in again.");
+      const existing = await store.loadProfile(user.id);
+      profile = existing ? normalizeProfile(existing) : createProfile(user);
+    }
+    profile = normalizeProfile(profile);
     const locationDef = LOCATIONS_BY_ID[this.location];
     if (!locationUnlocked(profile.level, profile.boatOwned, locationDef)) {
       throw new Error(`${locationDef.name} is locked.`);

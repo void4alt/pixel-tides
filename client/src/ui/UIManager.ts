@@ -249,6 +249,36 @@ export class UIManager {
     $("panel-close").addEventListener("click", () => this.closePanel());
     $("panel-backdrop").addEventListener("click", () => this.closePanel());
     $("btn-settings").addEventListener("click", () => this.togglePanel("settings"));
+    $("btn-fullscreen").addEventListener("click", () => {
+      this.audio.play("click");
+      this.toggleFullscreen();
+    });
+    const rotateDismiss = document.getElementById("rotate-dismiss");
+    if (rotateDismiss) {
+      rotateDismiss.addEventListener("click", () => {
+        this.audio.play("click");
+        $("rotate-prompt")?.classList.add("dismissed");
+      });
+    }
+    window.addEventListener("orientationchange", () => {
+      $("rotate-prompt")?.classList.remove("dismissed");
+    });
+    const onFsChange = () => {
+      const isFull = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      $("btn-fullscreen")?.classList.toggle("is-active", isFull);
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange);
+    window.addEventListener(
+      "pointerdown",
+      (e) => {
+        if (e.pointerType === "touch" && !this.mobileTouch) {
+          this.mobileTouch = true;
+          this.updateMobileControls();
+        }
+      },
+      { once: true },
+    );
     $("btn-chat").addEventListener("click", () => this.toggleChat());
     $("chat-close").addEventListener("click", () => this.toggleChat(false));
     $("chat-mode").addEventListener("click", () => {
@@ -636,6 +666,16 @@ export class UIManager {
       };
       el.textContent = `${rod.name.toUpperCase()} · ${labels[event.state] ?? event.state.toUpperCase()}`;
       el.className = `fishing-status ${event.state === "bite" ? "bite" : ["casting", "waiting", "minigame"].includes(event.state) ? "active" : ""}`;
+      const castBtn = document.getElementById("mobile-cast");
+      if (castBtn) {
+        if (event.state === "bite") {
+          castBtn.textContent = "HOOK!";
+          castBtn.classList.add("is-hook");
+        } else {
+          castBtn.textContent = "CAST";
+          castBtn.classList.remove("is-hook");
+        }
+      }
     });
     bus.on("sprintState", (event: { sprinting: boolean }) => {
       this.sprintOn = event.sprinting;
@@ -852,9 +892,35 @@ export class UIManager {
     }
   }
 
+  private toggleFullscreen(): void {
+    const doc = document as any;
+    const docEl = document.documentElement as any;
+    const isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement);
+    if (!isFull) {
+      if (docEl.requestFullscreen) {
+        docEl.requestFullscreen().catch(() => {});
+      } else if (docEl.webkitRequestFullscreen) {
+        docEl.webkitRequestFullscreen();
+      } else {
+        this.toast("Safari: tap Share → Add to Home Screen for fullscreen play!", "gold");
+      }
+    } else {
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch(() => {});
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      }
+    }
+  }
+
   private onBite(): void {
     this.hideMinigame();
     $("bite-prompt").classList.remove("is-hidden");
+    const castBtn = document.getElementById("mobile-cast");
+    if (castBtn) {
+      castBtn.textContent = "HOOK!";
+      castBtn.classList.add("is-hook");
+    }
     this.audio.play("bite");
     window.clearTimeout(this.biteTimeout);
     this.biteTimeout = window.setTimeout(() => this.hideBite(), 2450);
@@ -863,6 +929,11 @@ export class UIManager {
   private hideBite(): void {
     window.clearTimeout(this.biteTimeout);
     $("bite-prompt").classList.add("is-hidden");
+    const castBtn = document.getElementById("mobile-cast");
+    if (castBtn) {
+      castBtn.textContent = "CAST";
+      castBtn.classList.remove("is-hook");
+    }
   }
 
   private onMinigameStart(event: any): void {
