@@ -474,8 +474,9 @@ export class WorldRoom extends Room<WorldState> {
         player.moving = false;
         continue;
       }
-      const dx = input.dx / magnitude;
-      const dy = input.dy / magnitude;
+      const scale = magnitude > 1 ? 1 / magnitude : 1;
+      const dx = input.dx * scale;
+      const dy = input.dy * scale;
       const profile = this.profiles.get(sessionId);
       const canRun = input.running && (profile?.energy ?? 0) > 0 && !player.sailing && !player.diving;
       const speed = player.sailing ? 156 : player.diving ? 96 : canRun ? 182 : 124;

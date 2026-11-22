@@ -2580,8 +2580,6 @@ display:none}
 
   pointer-events: none;
 
-  transition: transform 0.05s linear;
-
 }
 
 .joystick-knob span {

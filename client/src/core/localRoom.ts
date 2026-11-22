@@ -156,6 +156,7 @@ export class LocalRoom {
   private targetFishId = "";
   private timeTicker: any = null;
   private weatherTicker: any = null;
+  private lastInputAt = 0;
 
   constructor(location: LocationId = "sunny-shore", profile?: PlayerProfile | null) {
     this.map = createWorld(location);
@@ -404,6 +405,10 @@ export class LocalRoom {
         this.handleToggleSail();
         break;
 
+      case "toggleDive":
+        this.handleToggleDive();
+        break;
+
       case "sellFish":
         this.handleSellFish(payload?.uids);
         break;
@@ -457,37 +462,54 @@ export class LocalRoom {
     const p = this.getPlayer();
     if (!p) return;
 
-    const dx = data.dx || 0;
-    const dy = data.dy || 0;
-    const running = !!data.running && (p.energy > 5);
+    const rawDx = Number(data.dx) || 0;
+    const rawDy = Number(data.dy) || 0;
+    const magnitude = Math.hypot(rawDx, rawDy);
 
-    p.moving = dx !== 0 || dy !== 0;
+    if (magnitude < 0.05) {
+      p.moving = false;
+      p.running = false;
+      this.lastInputAt = 0;
+      this.emitState();
+      return;
+    }
+
+    if (["casting", "waiting", "bite"].includes(p.fishingState)) {
+      this.handleCancel();
+    }
+
+    const running = !!data.running && p.energy > 5 && !p.sailing && !p.diving;
+    const scale = magnitude > 1 ? 1 / magnitude : 1;
+    const dx = rawDx * scale;
+    const dy = rawDy * scale;
+
+    p.moving = true;
     p.running = running;
 
-    if (dx < 0) p.dir = "left";
-    else if (dx > 0) p.dir = "right";
-    else if (dy < 0) p.dir = "up";
-    else if (dy > 0) p.dir = "down";
+    if (Math.abs(dx) > Math.abs(dy)) p.dir = dx > 0 ? "right" : "left";
+    else if (Math.abs(dy) > 0.15) p.dir = dy > 0 ? "down" : "up";
 
-    if (p.moving && p.fishingState === "idle") {
-      const speed = (running ? 115 : 68) * 0.05;
-      const nx = p.x + dx * speed;
-      const ny = p.y + dy * speed;
+    if (p.fishingState === "idle") {
+      const speed = p.sailing ? 156 : p.diving ? 96 : running ? 182 : 124;
+      const now = performance.now();
+      const dt = this.lastInputAt ? Math.min(0.1, (now - this.lastInputAt) / 1000) : 0.05;
+      this.lastInputAt = now;
+      const nextX = p.x + dx * speed * dt;
+      const nextY = p.y + dy * speed * dt;
 
-      const tx = Math.floor(nx / TILE);
-      const ty = Math.floor(ny / TILE);
+      const canMoveTo = (x: number, y: number) =>
+        p.sailing
+          ? canSail(this.map, x, y, 6)
+          : p.diving
+            ? canSwim(this.map, x, y, 6)
+            : canWalk(this.map, x, y, 6);
 
-      const walkable = p.sailing
-        ? canSail(this.map, tx, ty)
-        : p.diving
-          ? canSwim(this.map, tx, ty)
-          : canWalk(this.map, tx, ty);
+      if (canMoveTo(nextX, p.y)) p.x = nextX;
+      if (canMoveTo(p.x, nextY)) p.y = nextY;
 
-      if (walkable) {
-        const clamped = clampToMap(this.map, nx, ny);
-        p.x = clamped.x;
-        p.y = clamped.y;
-      }
+      const clamped = clampToMap(this.map, p.x, p.y);
+      p.x = clamped.x;
+      p.y = clamped.y;
     }
     this.emitState();
   }
@@ -708,6 +730,14 @@ export class LocalRoom {
     if (!p) return;
     p.sailing = !p.sailing;
     this.emitMessage("sailing", { sailing: p.sailing });
+    this.emitState();
+  }
+
+  private handleToggleDive(): void {
+    const p = this.getPlayer();
+    if (!p) return;
+    p.diving = !p.diving;
+    this.emitMessage("diving", { diving: p.diving });
     this.emitState();
   }
 

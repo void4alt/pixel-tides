@@ -298,6 +298,8 @@ export class UIManager {
     $("npc-prompt-btn").addEventListener("click", () => {
       if (this.currentNpc) this.openNpc(this.currentNpc);
     });
+    const mobControls = $("mobile-controls");
+    mobControls.addEventListener("pointerdown", (e) => e.stopPropagation());
     $("mobile-cast").addEventListener("click", () => {
       this.audio.play("click");
       bus.emit("castRequest");
@@ -2554,33 +2556,48 @@ export class UIManager {
       const cy = rect.top + rect.height / 2;
       let dx = event.clientX - cx;
       let dy = event.clientY - cy;
-      const max = rect.width * 0.34;
+      const max = rect.width * 0.38;
       const mag = Math.hypot(dx, dy);
       if (mag > max) {
         dx = (dx / mag) * max;
         dy = (dy / mag) * max;
       }
       knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-      const nx = dx / max;
-      const ny = dy / max;
-      bus.emit("mobileInput", { dx: Math.abs(nx) > 0.12 ? nx : 0, dy: Math.abs(ny) > 0.12 ? ny : 0 });
+      const deadzone = max * 0.12;
+      if (mag < deadzone) {
+        bus.emit("mobileInput", { dx: 0, dy: 0 });
+      } else {
+        const norm = Math.min(1, (mag - deadzone) / (max - deadzone));
+        const nx = (dx / mag) * norm;
+        const ny = (dy / mag) * norm;
+        bus.emit("mobileInput", { dx: nx, dy: ny });
+      }
     };
     joystick.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       pointerId = event.pointerId;
       joystick.setPointerCapture(pointerId);
+      knob.style.transition = "none";
       update(event);
     });
     joystick.addEventListener("pointermove", (event) => {
-      if (event.pointerId === pointerId) update(event);
+      if (event.pointerId === pointerId) {
+        event.preventDefault();
+        event.stopPropagation();
+        update(event);
+      }
     });
     const release = (event: PointerEvent) => {
       if (event.pointerId !== pointerId) return;
       pointerId = -1;
+      knob.style.transition = "transform 0.1s ease-out";
       knob.style.transform = "translate(-50%, -50%)";
       bus.emit("mobileInput", { dx: 0, dy: 0 });
     };
     joystick.addEventListener("pointerup", release);
     joystick.addEventListener("pointercancel", release);
+    joystick.addEventListener("lostpointercapture", release);
   }
 
   private openNpc(npc: NPCDef): void {

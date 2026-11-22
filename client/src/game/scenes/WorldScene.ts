@@ -751,6 +751,12 @@ export class WorldScene extends Phaser.Scene {
     });
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (this.uiOpen || this.isTyping() || performance.now() < this.inputEnabledAt) return;
+      if (pointer.wasTouch) {
+        const h = this.scale.height;
+        const w = this.scale.width;
+        if (pointer.y > h - 170 && (pointer.x < 170 || pointer.x > w - 240)) return;
+        if (Math.abs(this.mobileVec.dx) > 0.05 || Math.abs(this.mobileVec.dy) > 0.05) return;
+      }
       if (this.mgActive) {
         this.network.setReel(true);
         return;
@@ -1168,8 +1174,8 @@ export class WorldScene extends Phaser.Scene {
         appearanceKey: sheet.key,
         anims: sheet.anims,
         states: sheet.states,
-        targetX: player.x,
-        targetY: player.y,
+        targetX: initX,
+        targetY: initY,
         dir: (player.dir as CharDir) || "down",
         moving: player.moving,
         running: player.running,
@@ -1211,11 +1217,29 @@ export class WorldScene extends Phaser.Scene {
         py = this.map.spawn.y;
       }
     }
-    view.targetX = px;
-    view.targetY = py;
-    view.dir = (player.dir as CharDir) || "down";
-    view.moving = player.moving;
-    view.running = player.running;
+    if (sessionId === this.network.sessionId) {
+      const isLocalPredicting = !this.uiOpen && !player.passengerOf && player.fishingState === "idle";
+      const err = Phaser.Math.Distance.Between(view.sprite.x, view.sprite.y, px, py);
+      if (err > 36) {
+        view.sprite.setPosition(px, py);
+        view.targetX = px;
+        view.targetY = py;
+      } else if (!isLocalPredicting) {
+        view.targetX = px;
+        view.targetY = py;
+      }
+      if (!isLocalPredicting) {
+        view.dir = (player.dir as CharDir) || "down";
+        view.moving = player.moving;
+        view.running = player.running;
+      }
+    } else {
+      view.targetX = px;
+      view.targetY = py;
+      view.dir = (player.dir as CharDir) || "down";
+      view.moving = player.moving;
+      view.running = player.running;
+    }
     view.fishingState = player.fishingState;
     view.activity = player.activity || "idle";
     view.connected = player.connected;
@@ -1261,10 +1285,14 @@ export class WorldScene extends Phaser.Scene {
         if (Math.abs(input.dx) > Math.abs(input.dy)) view.dir = input.dx > 0 ? "right" : "left";
         else if (Math.abs(input.dy) > 0.15) view.dir = input.dy > 0 ? "down" : "up";
       } else {
+        if (canPredict) {
+          view.moving = false;
+          view.running = false;
+        }
         const distance = Phaser.Math.Distance.Between(view.sprite.x, view.sprite.y, view.targetX, view.targetY);
         if (distance > 140) {
           view.sprite.setPosition(view.targetX, view.targetY);
-        } else {
+        } else if (distance > 0.5) {
           const factor = sessionId === this.network.sessionId ? 0.45 : 0.35;
           view.sprite.x = Phaser.Math.Linear(view.sprite.x, view.targetX, factor);
           view.sprite.y = Phaser.Math.Linear(view.sprite.y, view.targetY, factor);
