@@ -1203,28 +1203,16 @@ export class WorldScene extends Phaser.Scene {
         this.cameras.main.startFollow(view.sprite, true, 0.3, 0.3);
       }
     }
-    let px = player.x;
-    let py = player.y;
-    if (sessionId === this.network.sessionId && !player.sailing && !player.diving) {
-      if (
-        px < 0 ||
-        py < 0 ||
-        px >= this.map.width * TILE ||
-        py >= this.map.height * TILE ||
-        isWaterTile(tileAt(this.map, px, py))
-      ) {
-        px = this.map.spawn.x;
-        py = this.map.spawn.y;
-      }
-    }
+    const px = player.x;
+    const py = player.y;
     if (sessionId === this.network.sessionId) {
       const isLocalPredicting = !this.uiOpen && !player.passengerOf && player.fishingState === "idle";
       const err = Phaser.Math.Distance.Between(view.sprite.x, view.sprite.y, px, py);
-      if (err > 36) {
+      if (err > 140) {
         view.sprite.setPosition(px, py);
         view.targetX = px;
         view.targetY = py;
-      } else if (!isLocalPredicting) {
+      } else if (!isLocalPredicting || !view.moving) {
         view.targetX = px;
         view.targetY = py;
       }
@@ -1801,7 +1789,8 @@ export class WorldScene extends Phaser.Scene {
     if (this.uiOpen || !this.worldReady) {
       if (this.lastInput.dx !== 0 || this.lastInput.dy !== 0) {
         this.lastInput = { dx: 0, dy: 0, running: false };
-        this.network.setInput(0, 0, false);
+        const ownView = this.playerViews.get(this.network.sessionId);
+        this.network.setInput(0, 0, false, ownView?.sprite.x, ownView?.sprite.y);
       }
       return;
     }
@@ -1814,7 +1803,8 @@ export class WorldScene extends Phaser.Scene {
     // Keep a heartbeat while moving so the server never times the input out.
     if (!changed && !active) return;
     this.lastInput = input;
-    this.network.setInput(input.dx, input.dy, input.running);
+    const ownView = this.playerViews.get(this.network.sessionId);
+    this.network.setInput(input.dx, input.dy, input.running, ownView?.sprite.x, ownView?.sprite.y);
   }
 
   private shutdown(): void {

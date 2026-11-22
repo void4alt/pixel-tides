@@ -209,8 +209,8 @@ export class NetworkManager {
     this.room?.send(type, payload);
   }
 
-  setInput(dx: number, dy: number, running: boolean): void {
-    this.send("input", { dx, dy, running });
+  setInput(dx: number, dy: number, running: boolean, x?: number, y?: number): void {
+    this.send("input", { dx, dy, running, x, y });
   }
 
   cast(x: number, y: number): void {

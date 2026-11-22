@@ -458,9 +458,14 @@ export class LocalRoom {
     }
   }
 
-  private handleInput(data: { dx: number; dy: number; running: boolean }): void {
+  private handleInput(data: { dx: number; dy: number; running: boolean; x?: number; y?: number }): void {
     const p = this.getPlayer();
     if (!p) return;
+
+    if (typeof data.x === "number" && typeof data.y === "number" && Number.isFinite(data.x) && Number.isFinite(data.y)) {
+      p.x = data.x;
+      p.y = data.y;
+    }
 
     const rawDx = Number(data.dx) || 0;
     const rawDy = Number(data.dy) || 0;
@@ -489,27 +494,29 @@ export class LocalRoom {
     if (Math.abs(dx) > Math.abs(dy)) p.dir = dx > 0 ? "right" : "left";
     else if (Math.abs(dy) > 0.15) p.dir = dy > 0 ? "down" : "up";
 
-    if (p.fishingState === "idle") {
-      const speed = p.sailing ? 156 : p.diving ? 96 : running ? 182 : 124;
-      const now = performance.now();
-      const dt = this.lastInputAt ? Math.min(0.1, (now - this.lastInputAt) / 1000) : 0.05;
-      this.lastInputAt = now;
-      const nextX = p.x + dx * speed * dt;
-      const nextY = p.y + dy * speed * dt;
+    if (data.x == null || data.y == null) {
+      if (p.fishingState === "idle") {
+        const speed = p.sailing ? 156 : p.diving ? 96 : running ? 182 : 124;
+        const now = performance.now();
+        const dt = this.lastInputAt ? Math.min(0.1, (now - this.lastInputAt) / 1000) : 0.05;
+        this.lastInputAt = now;
+        const nextX = p.x + dx * speed * dt;
+        const nextY = p.y + dy * speed * dt;
 
-      const canMoveTo = (x: number, y: number) =>
-        p.sailing
-          ? canSail(this.map, x, y, 6)
-          : p.diving
-            ? canSwim(this.map, x, y, 6)
-            : canWalk(this.map, x, y, 6);
+        const canMoveTo = (x: number, y: number) =>
+          p.sailing
+            ? canSail(this.map, x, y, 6)
+            : p.diving
+              ? canSwim(this.map, x, y, 6)
+              : canWalk(this.map, x, y, 6);
 
-      if (canMoveTo(nextX, p.y)) p.x = nextX;
-      if (canMoveTo(p.x, nextY)) p.y = nextY;
+        if (canMoveTo(nextX, p.y)) p.x = nextX;
+        if (canMoveTo(p.x, nextY)) p.y = nextY;
 
-      const clamped = clampToMap(this.map, p.x, p.y);
-      p.x = clamped.x;
-      p.y = clamped.y;
+        const clamped = clampToMap(this.map, p.x, p.y);
+        p.x = clamped.x;
+        p.y = clamped.y;
+      }
     }
     this.emitState();
   }
