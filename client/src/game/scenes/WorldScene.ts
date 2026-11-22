@@ -1130,14 +1130,28 @@ export class WorldScene extends Phaser.Scene {
       };
     }
     const sheet = createCharacterSheet(this, appearance);
+    let initX = player.x;
+    let initY = player.y;
+    if (sessionId === this.network.sessionId && !player.sailing && !player.diving) {
+      if (
+        initX < 0 ||
+        initY < 0 ||
+        initX >= this.map.width * TILE ||
+        initY >= this.map.height * TILE ||
+        isWaterTile(tileAt(this.map, initX, initY))
+      ) {
+        initX = this.map.spawn.x;
+        initY = this.map.spawn.y;
+      }
+    }
     if (!view) {
       const sprite = this.add
-        .sprite(player.x, player.y, sheet.key, 0)
+        .sprite(initX, initY, sheet.key, 0)
         .setOrigin(0.5, 1)
         .setScale(1.4)
-        .setDepth(player.y);
+        .setDepth(initY);
       const label = this.add
-        .text(player.x, player.y - 56, `Lv ${player.level} · ${player.username}`, {
+        .text(initX, initY - 56, `Lv ${player.level} · ${player.username}`, {
           fontFamily: "Silkscreen, monospace",
           fontSize: "6px",
           color: "#f8f2df",
@@ -1183,8 +1197,22 @@ export class WorldScene extends Phaser.Scene {
         this.cameras.main.startFollow(view.sprite, true, 0.3, 0.3);
       }
     }
-    view.targetX = player.x;
-    view.targetY = player.y;
+    let px = player.x;
+    let py = player.y;
+    if (sessionId === this.network.sessionId && !player.sailing && !player.diving) {
+      if (
+        px < 0 ||
+        py < 0 ||
+        px >= this.map.width * TILE ||
+        py >= this.map.height * TILE ||
+        isWaterTile(tileAt(this.map, px, py))
+      ) {
+        px = this.map.spawn.x;
+        py = this.map.spawn.y;
+      }
+    }
+    view.targetX = px;
+    view.targetY = py;
     view.dir = (player.dir as CharDir) || "down";
     view.moving = player.moving;
     view.running = player.running;

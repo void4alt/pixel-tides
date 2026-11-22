@@ -53,7 +53,7 @@ export function loadStoredProfile(): PlayerProfile | null {
 export function saveStoredProfile(profile: PlayerProfile): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-  } catch {}
+  } catch { }
 }
 
 export function createDefaultProfile(username = "GuestAngler"): PlayerProfile {
@@ -164,8 +164,8 @@ export class LocalRoom {
 
     const playersMap = new Map<string, NetPlayer>();
 
-    const spawnX = (this.map.spawn?.x ?? 42) * TILE;
-    const spawnY = (this.map.spawn?.y ?? 36) * TILE;
+    const spawnX = this.map.spawn?.x ?? 42 * TILE;
+    const spawnY = this.map.spawn?.y ?? 36 * TILE;
 
     playersMap.set(this.sessionId, {
       id: this.sessionId,
@@ -480,8 +480,8 @@ export class LocalRoom {
       const walkable = p.sailing
         ? canSail(this.map, tx, ty)
         : p.diving
-        ? canSwim(this.map, tx, ty)
-        : canWalk(this.map, tx, ty);
+          ? canSwim(this.map, tx, ty)
+          : canWalk(this.map, tx, ty);
 
       if (walkable) {
         const clamped = clampToMap(this.map, nx, ny);
@@ -808,8 +808,8 @@ export class LocalRoom {
 
     const p = this.getPlayer();
     if (p) {
-      p.x = (this.map.spawn?.x ?? 42) * TILE;
-      p.y = (this.map.spawn?.y ?? 36) * TILE;
+      p.x = this.map.spawn?.x ?? 42 * TILE;
+      p.y = this.map.spawn?.y ?? 36 * TILE;
       p.fishingState = "idle";
     }
 
